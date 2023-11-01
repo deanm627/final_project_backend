@@ -30,12 +30,13 @@ class LogoutView(APIView):
 
 class RegisterView(APIView):
     def post(self, request):
-        print(request.data)
-        print(request.data['username'])
-        try:
-            CustomUser.objects.get(username__iexact=request.data['username'])
-            return Response('username already exists', status=status.HTTP_400_BAD_REQUEST)
-        except: 
+        if CustomUser.objects.filter(username__iexact=request.data['username']).exists():
+            reason = 'Username already exists, please choose another'
+            return Response(reason.data, status=status.HTTP_400_BAD_REQUEST)
+        elif CustomUser.objects.filter(email__iexact=request.data['email']).exists():
+            reason = 'There is already an account with this email.'
+            return Response(reason.data, status=status.HTTP_400_BAD_REQUEST)
+        else:
             serializer = NewUserSerializer(data=request.data)
             if serializer.is_valid():
                 new_user = serializer.save()
