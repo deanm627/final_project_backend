@@ -6,4 +6,4 @@ class BPSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = BP
-        fields = ['systolic', 'diastolic', 'date', 'time', 'user']
+        fields = ['systolic', 'diastolic', 'date', 'time', 'user', 'id']

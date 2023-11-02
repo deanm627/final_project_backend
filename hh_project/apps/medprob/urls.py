@@ -10,5 +10,7 @@ from . import views
 # ]
 
 urlpatterns = [
-    path('bps/', views.BPView.as_view(), name = 'bp-list')
+    path('bp/', views.BPSummaryView.as_view(), name='bp-home'),
+    path('bps/', views.BPListView.as_view(), name='bp-list'),
+    path('bps/<int:pk>/', views.BPDetailView.as_view(), name='bp-detail'),
 ]
