@@ -32,15 +32,15 @@ class RegisterView(APIView):
     def post(self, request):
         if CustomUser.objects.filter(username__iexact=request.data['username']).exists():
             reason = 'Username already exists, please choose another'
-            return Response(reason.data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(reason, status=status.HTTP_400_BAD_REQUEST)
         elif CustomUser.objects.filter(email__iexact=request.data['email']).exists():
             reason = 'There is already an account with this email.'
-            return Response(reason.data, status=status.HTTP_400_BAD_REQUEST)
+            return Response(reason, status=status.HTTP_400_BAD_REQUEST)
         else:
             serializer = NewUserSerializer(data=request.data)
             if serializer.is_valid():
                 new_user = serializer.save()
                 new_user.password = make_password(request.data['password'])
                 new_user.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response('Success', status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
