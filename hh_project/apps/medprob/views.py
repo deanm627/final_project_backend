@@ -1,33 +1,56 @@
 from django.shortcuts import render
 from .models import BP
-from .serializers import BPSerializer
+from .serializers import BPSerializer, BPAvgSerializer, BPDetailSerializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import Http404
 from django.db.models import Avg, Min
+from datetime import date, timedelta
+
+class BPAvg:
+    def __init__(self, sys_avg, dia_avg, count, first_date):
+        self.sys_avg = sys_avg
+        self.dia_avg = dia_avg
+        self.count = count
+        self.first_date = first_date
 
 class BPSummaryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
         bps = BP.objects.filter(user=self.request.user)
-        count = {'count': bps.count()}
+        first_date = bps.aggregate(Min('date'))
+        date = first_date['date__min']
+        num_days = request.query_params.get('days')
+        print(num_days)
+        if num_days:
+            num_days = int(num_days)
+            startdate = date.today()
+            enddate = startdate - timedelta(days=num_days)
+            print(enddate, startdate)
+            print(bps)
+            print(bps.count())
+            bps = bps.filter(date__range=[enddate, startdate])
+            print(bps)
+            print(bps.count())
+            date = enddate
+        count = bps.count()
         avg_sys = bps.aggregate(Avg('systolic'))
         avg_dia = bps.aggregate(Avg('diastolic'))
-        first_date = bps.aggregate(Min('date'))
-        # serializer_sys = BPSerializer(avg_sys)
-        # serializer_dia = BPSerializer(avg_dia)
+        print(avg_sys)
+        print(avg_dia)
+        avg_sys = round(avg_sys['systolic__avg'])
+        avg_dia = round(avg_dia['diastolic__avg'])
         print(avg_sys)
         print(avg_dia)
         print(count)
-        print(first_date)
-        data = avg_sys | avg_dia | count | first_date
-        print(data)
-        # content = serializer_sys.data + serializer_dia.data
-        # print(content)
-        return Response(data)
+        print(date)
+        data = BPAvg(avg_sys, avg_dia, count, date)
+        serializer = BPAvgSerializer(data)
+        print(serializer.data)
+        return Response(serializer.data)
 
 class BPListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -56,12 +79,13 @@ class BPDetailView(APIView):
     
     def get(self, request, pk):
         bp = self.get_object(pk)
-        serializer = BPSerializer(bp)
+        serializer = BPDetailSerializer(bp)
+        print(serializer.data)
         return Response(serializer.data)
     
     def put(self, request, pk):
         bp = self.get_object(pk)
-        serializer = BPSerializer(bp, data=request.data)
+        serializer = BPDetailSerializer(bp, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

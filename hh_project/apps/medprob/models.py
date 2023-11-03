@@ -13,8 +13,5 @@ class BP(models.Model):
         ordering = ['-date', '-time']
 
     def __str__(self):
-        return f"{self.date}, {self.time}"
+        return f"{self.date}"
     
-
-    # format=('%b %d, %Y')
-    # format=('%I: %M')
