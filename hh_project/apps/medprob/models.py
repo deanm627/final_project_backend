@@ -13,7 +13,7 @@ class BP(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ['-date_num', '-time_num']
+        ordering = ['-date_num', 'time_num']
 
     def __str__(self):
         return f"{self.date_str}, {self.time_str}"
