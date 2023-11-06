@@ -31,7 +31,7 @@ class BPSummaryView(APIView):
             print(enddate, startdate)
             print(bps)
             print(bps.count())
-            bps = bps.filter(date__range=[enddate, startdate])
+            bps = bps.filter(date_num__range=[enddate, startdate])
             print(bps)
             print(bps.count())
             date = enddate
@@ -56,6 +56,15 @@ class BPListView(APIView):
 
     def get(self, request):
         bps = BP.objects.filter(user=self.request.user)
+        date1 = request.query_params.get('date1')
+        date2 = request.query_params.get('date2')
+        if date1:
+            if (date1 > date2):
+                bps = bps.filter(date_num__range=[date2, date1])
+            elif (date2 > date1):
+                bps = bps.filter(date_num__range=[date1, date2])
+            else:
+                bps = bps.filter(date_num=date1)
         serializer = BPSerializer(bps, many=True)
         return Response(serializer.data)
     
