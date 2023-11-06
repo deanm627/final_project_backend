@@ -3,19 +3,12 @@ from .models import BP
 
 class BPSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')
-    date = serializers.DateField(format="%b %d, %Y")
-    time = serializers.TimeField(format="%I: %M %p")
+    date_str = serializers.DateField(format="%b %d, %Y")
+    time_str = serializers.TimeField(format="%I: %M %p")
     
     class Meta:
         model = BP
-        fields = ['systolic', 'diastolic', 'date', 'time', 'user', 'id']
-
-class BPDetailSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
-    
-    class Meta:
-        model = BP
-        fields = ['systolic', 'diastolic', 'date', 'time', 'user', 'id']
+        fields = ['systolic', 'diastolic', 'date_num', 'date_str','time_num', 'time_str', 'user', 'id']
 
 class BPAvgSerializer(serializers.Serializer):
     sys_avg = serializers.IntegerField()

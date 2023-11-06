@@ -1,6 +1,5 @@
-from django.shortcuts import render
 from .models import BP
-from .serializers import BPSerializer, BPAvgSerializer, BPDetailSerializer
+from .serializers import BPSerializer, BPAvgSerializer
 from rest_framework import permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -21,8 +20,8 @@ class BPSummaryView(APIView):
 
     def get(self, request):
         bps = BP.objects.filter(user=self.request.user)
-        first_date = bps.aggregate(Min('date'))
-        date = first_date['date__min']
+        first_date = bps.aggregate(Min('date_num'))
+        date = first_date['date_num__min']
         num_days = request.query_params.get('days')
         print(num_days)
         if num_days:
@@ -79,13 +78,13 @@ class BPDetailView(APIView):
     
     def get(self, request, pk):
         bp = self.get_object(pk)
-        serializer = BPDetailSerializer(bp)
+        serializer = BPSerializer(bp)
         print(serializer.data)
         return Response(serializer.data)
     
     def put(self, request, pk):
         bp = self.get_object(pk)
-        serializer = BPDetailSerializer(bp, data=request.data)
+        serializer = BPSerializer(bp, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
