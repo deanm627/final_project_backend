@@ -6,7 +6,16 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import Http404
 from django.db.models import Avg, Min
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
+
+def calcAvg(dataset, date):
+    count = dataset.count()
+    avg_sys = dataset.aggregate(Avg('systolic'))
+    avg_dia = dataset.aggregate(Avg('diastolic'))
+    avg_sys = round(avg_sys['systolic__avg'])
+    avg_dia = round(avg_dia['diastolic__avg'])
+    data = BPAvg(avg_sys, avg_dia, count, date)
+    return data
 
 class BPAvg:
     def __init__(self, sys_avg, dia_avg, count, first_date):
@@ -20,6 +29,10 @@ class BPSummaryView(APIView):
 
     def get(self, request):
         bps = BP.objects.filter(user=self.request.user)
+        timetest1 = bps.filter(time_num__hour__lt=(12))
+        print('TIMETEST1:', timetest1)
+        timetest2 = bps.filter(time_num__hour__gte=(12))
+        print('TIMETEST2:', timetest2)
         first_date = bps.aggregate(Min('date_num'))
         date = first_date['date_num__min']
         num_days = request.query_params.get('days')
@@ -35,19 +48,10 @@ class BPSummaryView(APIView):
             print(bps)
             print(bps.count())
             date = enddate
-        count = bps.count()
-        avg_sys = bps.aggregate(Avg('systolic'))
-        avg_dia = bps.aggregate(Avg('diastolic'))
-        print(avg_sys)
-        print(avg_dia)
-        avg_sys = round(avg_sys['systolic__avg'])
-        avg_dia = round(avg_dia['diastolic__avg'])
-        print(avg_sys)
-        print(avg_dia)
-        print(count)
-        print(date)
-        data = BPAvg(avg_sys, avg_dia, count, date)
+        data = calcAvg(bps, date)
         serializer = BPAvgSerializer(data)
+        obj = {'generic': serializer.data}
+        print(obj)
         print(serializer.data)
         return Response(serializer.data)
 
