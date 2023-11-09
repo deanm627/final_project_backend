@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import Http404
 from django.db.models import Avg, Min
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta
 import calendar
 
 def calcAvg(dataset, date, label):
@@ -19,8 +19,18 @@ def calcAvg(dataset, date, label):
         avg_data = BPAvg(avg_sys, avg_dia, count, date)
     else:
         avg_data = BPAvg(0, 0, 0, date)
+
     serializer = BPAvgSerializer(avg_data)
-    data = {label: serializer.data}
+
+    if isinstance(label, str):
+        if label.startswith('Week') or label.startswith('Day'):
+            new_label = serializer.data['first_date'][0:6]
+            data = {new_label: serializer.data}
+            print('TEST: ', data)
+        else:
+            data = {label: serializer.data}
+    else:
+        data = {label: serializer.data}
     return data
 
 
@@ -62,47 +72,45 @@ class BPSummaryView(APIView):
                 case _:
                     num_days = num
             print('NUM_DAYS: ', num_days)
-            if (num_days > 365 and interval == 'year'):
-                num_years = int(num_days/365)
+
+            if (interval == 'year'):
+                num_years = num
                 year = date.today().year
                 data_chart = {}
                 while num_years > 0:
                     year_data = bps.filter(date_num__year=year)
-                    data_chart = data_chart | calcAvg(year_data, date, year)
+                    data_chart = calcAvg(year_data, date, year) | data_chart 
                     year -= 1
                     num_years -= 1
                 data_chart = {'data_chart': data_chart}
+                print('DATACHART: ', data_chart)
 
-            elif (num_days > 30 and interval == 'month'):
-                num_months = int(num_days/30)
+            elif (interval == 'month'):
+                num_months = num
                 month = date.today().month
                 data_chart = {}
                 while num_months > 0:
                     if (month == 0):
                         month = 12
                     month_data = bps.filter(date_num__month=month)
-                    print(calendar.month_name[month])
-                    print(month_data)
-                    data_chart = data_chart | calcAvg(month_data, date, calendar.month_abbr[month])
+                    data_chart = calcAvg(month_data, date, calendar.month_abbr[month]) | data_chart
                     month -= 1
                     num_months -= 1
                 data_chart = {'data_chart': data_chart}
+                print('DATACHART: ', data_chart)
             
-            elif ((num_days > 7 and interval == 'week') or (num == 1 and interval == 'month')):
-                num_weeks = int(num_days/7)
+            elif (interval == 'week'):
+                num_weeks = num
                 data_chart = {}
                 start = date.today()
                 while num_weeks > 0:
                     end = start - timedelta(days=6)
-                    print("START: ", start)
-                    print("END: ", end)
                     week_data = bps.filter(date_num__range=[end, start])
-                    print(week_data)
-                    data_chart = data_chart | calcAvg(week_data, end, f'Week {num_weeks}')
-                    print(data_chart)
+                    data_chart = calcAvg(week_data, end, f'Week {num_weeks}') | data_chart
                     start = start - timedelta(days=7)
                     num_weeks -= 1
                 data_chart = {'data_chart': data_chart}
+                print('DATACHART: ', data_chart)
             
             else: 
                 days = num
@@ -110,19 +118,18 @@ class BPSummaryView(APIView):
                 start = date.today()
                 while days > 0:
                     day_data = bps.filter(date_num=start)
-                    print("START: ", start)
-                    print(day_data)
-                    data_chart = data_chart | calcAvg(day_data, start, f'Day {days}')
-                    print(data_chart)
+                    data_chart = calcAvg(day_data, start, f'Day {days}') | data_chart
                     start = start - timedelta(days=1)
                     days -= 1
                 data_chart = {'data_chart': data_chart}
+                print('DATACHART: ', data_chart)
 
             startdate = date.today()
             enddate = startdate - timedelta(days=num_days)
             bps = bps.filter(date_num__range=[enddate, startdate])
             date = enddate
             data = avgData(bps, date) | data_chart
+            print(data)
             return Response(data)
         else:
             data = avgData(bps, date)
