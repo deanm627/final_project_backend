@@ -1,6 +1,6 @@
 from .models import BP
 from .serializers import BPSerializer, BPAvgSerializer
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -8,6 +8,7 @@ from django.http import Http404
 from django.db.models import Avg, Min
 from datetime import date, timedelta
 import calendar
+from .paginations import CustomPagination
 
 def calcAvg(dataset, date, label):
     if dataset:
@@ -149,8 +150,10 @@ class BPListView(APIView):
                 bps = bps.filter(date_num__range=[date1, date2])
             else:
                 bps = bps.filter(date_num=date1)
-        serializer = BPSerializer(bps, many=True)
-        return Response(serializer.data)
+        paginator = pagination.PageNumberPagination()
+        result_page = paginator.paginate_queryset(bps, request)
+        serializer = BPSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     
     def post(self, request):
         print(request.data)
