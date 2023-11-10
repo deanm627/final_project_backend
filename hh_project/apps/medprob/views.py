@@ -8,7 +8,6 @@ from django.http import Http404
 from django.db.models import Avg, Min
 from datetime import date, timedelta
 import calendar
-from .paginations import CustomPagination
 
 def calcAvg(dataset, date, label):
     if dataset:
