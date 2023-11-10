@@ -1,6 +1,5 @@
 from django.db import models
 from django.conf import settings
-from datetime import date
 
 # Two date and time columns: same values but one for calculations and another for display 
 class BP(models.Model):

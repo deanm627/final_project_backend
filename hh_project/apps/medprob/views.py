@@ -2,11 +2,10 @@ from .models import BP
 from .serializers import BPSerializer, BPAvgSerializer
 from rest_framework import permissions, status, pagination
 from rest_framework.response import Response
-from rest_framework.decorators import action
 from rest_framework.views import APIView
 from django.http import Http404
 from django.db.models import Avg, Min
-from datetime import date, timedelta
+from datetime import timedelta
 import calendar
 
 def calcAvg(dataset, date, label):
@@ -174,7 +173,6 @@ class BPDetailView(APIView):
     def get(self, request, pk):
         bp = self.get_object(pk)
         serializer = BPSerializer(bp)
-        print(serializer.data)
         return Response(serializer.data)
     
     def put(self, request, pk):

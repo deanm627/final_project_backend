@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('medprob/', include('apps.medprob.urls')),
     path('accounts/', include('apps.accounts.urls')),
+    path('meds/', include('apps.meds.urls')),
     path('token/', 
         jwt_views.TokenObtainPairView.as_view(), 
         name ='token_obtain_pair'),
