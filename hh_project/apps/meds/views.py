@@ -11,6 +11,12 @@ class MedListView(APIView):
 
     def get(self, request):
         meds = Med.objects.filter(user=self.request.user)
+        medprob = request.query_params.get('medprob')
+        print(medprob)
+        if medprob:
+            filter1 = meds.filter(assoc_medprob__icontains='blood pressure')
+            filter2 = meds.filter(assoc_medprob__icontains='hypertension')
+            meds = filter1 | filter2
         paginator = pagination.PageNumberPagination()
         result_page = paginator.paginate_queryset(meds, request)
         serializer = MedSerializer(result_page, many=True)
