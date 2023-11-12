@@ -16,7 +16,7 @@ class Med(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['-end_date_num', '-start_date_num']
 
     def __str__(self):
         return f"{self.name}"
