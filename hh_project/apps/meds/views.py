@@ -5,6 +5,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
 
+def getCounts(meds):
+    currentCount = meds.filter(end_date_num__isnull=True).count()
+    oldCount = meds.filter(end_date_num__isnull=False).count()
+    return {'currentCount': currentCount, 'oldCount': oldCount}
+
 # Create your views here.
 class MedListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -17,13 +22,17 @@ class MedListView(APIView):
             filter1 = meds.filter(assoc_medprob__icontains='blood pressure')
             filter2 = meds.filter(assoc_medprob__icontains='hypertension')
             meds = filter1 | filter2
-        paginator = pagination.PageNumberPagination()
-        result_page = paginator.paginate_queryset(meds, request)
-        serializer = MedSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+            serializer = MedSerializer(meds, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            currentMeds = meds.filter(end_date_num__isnull=True)
+            current_serializer = MedSerializer(currentMeds, many=True)
+            oldMeds = meds.filter(end_date_num__isnull=False)
+            old_serializer = MedSerializer(oldMeds, many=True)
+            data = {'current': current_serializer.data} | {'old': old_serializer.data}
+            return Response(data, status=status.HTTP_200_OK)
     
     def post(self, request):
-        print(request.data)
         serializer = MedSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=self.request.user)
@@ -42,7 +51,7 @@ class MedDetailView(APIView):
     def get(self, request, pk):
         med = self.get_object(pk)
         serializer = MedSerializer(med)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, pk):
         med = self.get_object(pk)
@@ -50,7 +59,7 @@ class MedDetailView(APIView):
         serializer = MedSerializer(med, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk):

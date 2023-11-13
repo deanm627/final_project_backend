@@ -25,7 +25,6 @@ def calcAvg(dataset, date, label):
         if label.startswith('Week') or label.startswith('Day'):
             new_label = serializer.data['first_date'][0:6]
             data = {new_label: serializer.data}
-            print('TEST: ', data)
         else:
             data = {label: serializer.data}
     else:
@@ -58,21 +57,20 @@ class BPSummaryView(APIView):
         date = first_date['date_num__min']
         num = request.query_params.get('num')
         interval = request.query_params.get('type')
-        
+        print(interval)
         if num:
             num = int(num)
             match interval:
-                case 'year':
+                case 'Year':
                     num_days = num * 365
-                case 'month':
+                case 'Month':
                     num_days = num * 30
-                case 'week':
+                case 'Week':
                     num_days = num * 7
                 case _:
                     num_days = num
-            print('NUM_DAYS: ', num_days)
 
-            if (interval == 'year'):
+            if (interval == 'Year'):
                 num_years = num
                 year = date.today().year
                 data_chart = {}
@@ -82,9 +80,8 @@ class BPSummaryView(APIView):
                     year -= 1
                     num_years -= 1
                 data_chart = {'data_chart': data_chart}
-                print('DATACHART: ', data_chart)
 
-            elif (interval == 'month'):
+            elif (interval == 'Month'):
                 num_months = num
                 month = date.today().month
                 data_chart = {}
@@ -96,9 +93,8 @@ class BPSummaryView(APIView):
                     month -= 1
                     num_months -= 1
                 data_chart = {'data_chart': data_chart}
-                print('DATACHART: ', data_chart)
             
-            elif (interval == 'week'):
+            elif (interval == 'Week'):
                 num_weeks = num
                 data_chart = {}
                 start = date.today()
@@ -109,7 +105,6 @@ class BPSummaryView(APIView):
                     start = start - timedelta(days=7)
                     num_weeks -= 1
                 data_chart = {'data_chart': data_chart}
-                print('DATACHART: ', data_chart)
             
             else: 
                 days = num
@@ -121,18 +116,16 @@ class BPSummaryView(APIView):
                     start = start - timedelta(days=1)
                     days -= 1
                 data_chart = {'data_chart': data_chart}
-                print('DATACHART: ', data_chart)
 
             startdate = date.today()
             enddate = startdate - timedelta(days=num_days)
             bps = bps.filter(date_num__range=[enddate, startdate])
             date = enddate
             data = avgData(bps, date) | data_chart
-            print(data)
-            return Response(data)
+            return Response(data, status=status.HTTP_200_OK)
         else:
             data = avgData(bps, date)
-            return Response(data)
+            return Response(data, status=status.HTTP_200_OK)
 
 class BPListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -173,14 +166,14 @@ class BPDetailView(APIView):
     def get(self, request, pk):
         bp = self.get_object(pk)
         serializer = BPSerializer(bp)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
     def put(self, request, pk):
         bp = self.get_object(pk)
         serializer = BPSerializer(bp, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def delete(self, request, pk):
