@@ -131,20 +131,23 @@ class BPListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        bps = BP.objects.filter(user=self.request.user)
-        date1 = request.query_params.get('date1')
-        date2 = request.query_params.get('date2')
-        if date1:
-            if (date1 > date2):
-                bps = bps.filter(date_num__range=[date2, date1])
-            elif (date2 > date1):
-                bps = bps.filter(date_num__range=[date1, date2])
-            else:
-                bps = bps.filter(date_num=date1)
-        paginator = pagination.PageNumberPagination()
-        result_page = paginator.paginate_queryset(bps, request)
-        serializer = BPSerializer(result_page, many=True)
-        return paginator.get_paginated_response(serializer.data)
+        try:
+            bps = BP.objects.filter(user=self.request.user)
+            date1 = request.query_params.get('date1')
+            date2 = request.query_params.get('date2')
+            if date1:
+                if (date1 > date2):
+                    bps = bps.filter(date_num__range=[date2, date1])
+                elif (date2 > date1):
+                    bps = bps.filter(date_num__range=[date1, date2])
+                else:
+                    bps = bps.filter(date_num=date1)
+            paginator = pagination.PageNumberPagination()
+            result_page = paginator.paginate_queryset(bps, request)
+            serializer = BPSerializer(result_page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+        except:
+            return Response("An error occurred.")
     
     def post(self, request):
         print(request.data)
