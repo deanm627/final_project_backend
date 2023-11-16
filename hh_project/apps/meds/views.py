@@ -19,8 +19,8 @@ class MedListView(APIView):
         medprob = request.query_params.get('medprob')
         print(medprob)
         if medprob:
-            filter1 = meds.filter(assoc_medprob__icontains='blood pressure')
-            filter2 = meds.filter(assoc_medprob__icontains='hypertension')
+            filter1 = meds.filter(assoc_medprob__icontains='blood pressure').exclude(end_date_num__isnull=False)
+            filter2 = meds.filter(assoc_medprob__icontains='hypertension').exclude(end_date_num__isnull=False)
             meds = filter1 | filter2
             serializer = MedSerializer(meds, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
