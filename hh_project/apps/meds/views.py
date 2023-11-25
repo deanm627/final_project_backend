@@ -1,6 +1,6 @@
 from .models import Med
 from .serializers import MedSerializer
-from rest_framework import permissions, status, pagination
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.http import Http404
