@@ -5,7 +5,6 @@ from django.conf import settings
 class Med(models.Model):
     name = models.CharField(max_length=255)
     dose = models.CharField(max_length=255)
-    route = models.CharField(max_length=255)
     freq = models.CharField(max_length=255)
     start_date_num = models.DateField(auto_now=False, auto_now_add=False)
     start_date_str = models.DateField(auto_now=False, auto_now_add=False)
